@@ -1,0 +1,11 @@
+import os
+
+def scrutinize_folder(folder_path):
+    for file_name in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path):
+            print(file_name)
+
+# Exemple d'utilisation
+folder_path = "C:\Users\s563998\Desktop\PROJET"  # Remplacez cela par le chemin réel de votre dossier
+scrutinize_folder(folder_path)
