@@ -1,11 +1,33 @@
-import os
+import requests
+from bs4 import BeautifulSoup
+def fetch_last_page():
+    r = requests.get("https://www.legifrance.gouv.fr/initRechJuriJournal")
+    soup = BeautifulSoup(r.content, 'html.parser')
+    last_page = soup.find_all('a', {'class': 'paginatortr'})[-2]['href']
+    return last_page
+def fetch_new_laws():
+    last_page = fetch_last_page()
+    r = requests.get(last_page)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    legal_articles = soup.find_all('tr', {'class': ['piedTableau', 'ligneSurligne']})
+    
+    new_laws = []
+    
+    for article in legal_articles:
+        article_details = article.find_all('td')
+        new_law = {
+            'num_article': article_details[0].text.strip(),
+            'date_promulgation': article_details[1].text.strip(),
+            'description': article_details[2].text.strip(),
+            'lien': 'https://www.legifrance.gouv.fr' + article_details[2].find('a')['href']
+        }
+        new_laws.append(new_law)
+        
+    return new_laws
+if __name__ == '__main__':
+    new_laws = fetch_new_laws()
+    
+    print(f"Voici les nouveaux textes de loi promulgués le {new_laws[0]['date_promulgation']} :")
 
-def scrutinize_folder(folder_path):
-    for file_name in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, file_name)
-        if os.path.isfile(file_path):
-            print(file_name)
-
-# Exemple d'utilisation
-folder_path = "C:\Users\s563998\Desktop\PROJET"  # Remplacez cela par le chemin réel de votre dossier
-scrutinize_folder(folder_path)
+    for law in new_laws:
+        print(f"Article {law['num_article']}: {law['description']} \
